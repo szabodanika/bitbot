@@ -10,7 +10,7 @@ registry.registerAnnotation(path.join(__dirname, '/annotations/TriggerAnnotation
 registry.registerAnnotation(path.join(__dirname, '/annotations/AliasAnnotation.js'));
 registry.registerAnnotation(path.join(__dirname, '/annotations/ParamsAnnotation.js'));
 
-reader.parse(path.join(__dirname, '/discord/cleanDiscordBot.js'));
+reader.parse(path.join(__dirname, '/discord/CleanDiscordBot.js'));
 
 
 let commands = [];

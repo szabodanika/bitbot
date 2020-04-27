@@ -2,19 +2,22 @@
   "name": "bitbot",
   "version": "0.0.1",
   "description": "CleanBits universal chatbot",
-  "main": "test.js",
+  "main": "src/Core.js",
   "scripts": {
-    "start": "node test.js"
+    "start": "node src/Core.js"
   },
   "dependencies": {
     "@conga/annotations": "^1.0.3",
+    "StringScanner": "0.0.3",
     "annotations": "^1.1.2",
     "aws-sdk": "^2.663.0",
     "conga-annotations": "^1.0.0",
     "discord.js": "^12.2.0",
+    "dotenv": "^8.2.0",
     "express": "^4.16.4",
     "nosql": "^6.1.0",
-    "tmi.js": "^1.2.1",
+    "package.json": "^2.0.1",
+    "tmi.js": "^1.5.0",
     "xmlhttprequest": "^1.8.0"
   },
   "engines": {

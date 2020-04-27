@@ -1,12 +1,11 @@
 
 const fs = require('fs')
-let path;
+let path = require('path');
 let read;
 let file;
 
 function start() {
-    path = './data/users.json'
-    read = fs.readFileSync(path);
+    read = fs.readFileSync(path.join(__dirname, '../../data/users.json'));
     file = JSON.parse(read);
     setInterval(bankAddInterest, 86400000);
 }
@@ -100,7 +99,7 @@ function checkUserExists(user) {
 }
 
 function sync() {
-    fs.writeFileSync(path, JSON.stringify(file, null, 2));
+    fs.writeFileSync(path.join(__dirname, '../../data/users.json'), JSON.stringify(file, null, 2));
 }
 
 module.exports = {
