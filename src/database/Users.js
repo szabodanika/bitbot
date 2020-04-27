@@ -20,20 +20,35 @@ function addUser(user) {
     sync()
 }
 
-function changeMoney(user, val) {
-    checkUserExists(user)
-    file[user.id]['balance'] += val;
-    sync()
+function addMoney(user, amount) {
+    return changeMoney(user, amount);
 }
 
-function changeBank(user) {
+function takeMoney(user, amount) {
+    return changeMoney(user, -amount);
+}
+
+function changeMoney(user, amount) {
     checkUserExists(user)
-    if (val > 0 && val <= this.getCashBalance(user)) {
-        file[user.id]['balance'] -= val;
-        file[user.id]['bank'] += val;
-    } else if (val > 0 && val <= this.getCashBalance(user)) {
-        file[user.id]['balance'] += val;
-        file[user.id]['bank'] -= val;
+    if(getCashBalance(user) + amount < 0) return false;
+    file[user.id]['balance'] += amount;
+    sync()
+    return true;
+}
+
+function deposit(user, amount){
+    return changeBank(user, amount);
+}
+
+function withdraw(user, amount){
+    return changeBank(user, -amount);
+}
+
+function changeBank(user, amount) {
+    checkUserExists(user)
+    if ((amount > 0 && amount <= getCashBalance(user)) || (amount < 0 && amount <= getBankBalance(user))) {
+        file[user.id]['balance'] -= amount;
+        file[user.id]['bank'] += amount;
     } else {
         return false;
     }
@@ -50,30 +65,34 @@ function bankAddInterest() {
     sync();
 }
 
-function diceBet(user) {
+function diceBet(user, amount) {
     checkUserExists(user);
     if(getCashBalance(user) < amount) return [0,0,-1];
     let botroll = Math.floor(Math.random()*6)+1;
     let userroll = Math.floor(Math.random()*6)+1;
 
     if(botroll > userroll){
-        changeMoney(user, -amount);
+        takeMoney(user, amount);
         return [userroll, botroll, -amount];
     }  else if(botroll < userroll){
-        changeMoney(user, amount);
+        addMoney(user, amount);
         return [userroll, botroll, amount];
     } else if(botroll == userroll) return [userroll, botroll, 0];
     sync();
 }
 
+function getCombinedBalance(user){
+    return getBankBalance(user) + getCashBalance(user);
+}
+
 function getCashBalance(user) {
     checkUserExists(user);
-    return Math.round(file[user.id]['balance'] * 100) / 100;
+    return file[user.id]['balance'];
 }
 
 function getBankBalance(user) {
     checkUserExists(user);
-    return Math.round(file[user.id]['bank'] * 100) / 100;
+    return file[user.id]['bank'];
 }
 
 function checkUserExists(user) {
@@ -87,10 +106,13 @@ function sync() {
 module.exports = {
     start: start,
     addUser: addUser,
-    changeMoney: changeMoney,
-    changeBank: changeBank,
+    addMoney: addMoney,
+    takeMoney: takeMoney,
+    deposit: deposit,
+    withdraw: withdraw,
     getCashBalance: getCashBalance,
     getBankBalance: getBankBalance,
+    getCombinedBalance: getCombinedBalance,
     checkUserExists: checkUserExists,
     diceBet: diceBet
 };

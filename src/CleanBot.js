@@ -4,11 +4,11 @@ require('dotenv').config()
 
 class CleanBot{
 
-    casino = require('./database/Users.js');
+    userdata = require('./database/Users.js');
 
     constructor(name) {
         this.name = name;
-        this.casino.start();
+        this.userdata.start();
     }
 
     run(){

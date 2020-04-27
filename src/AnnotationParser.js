@@ -18,11 +18,12 @@ let triggers = [];
 
 load();
 
-function getFunction(command) {
-    foundcommand = findCommand(command);
-    foundtrigger = findTrigger(command);
+function getFunction(input) {
+    if(input.charAt(0) == '!') input = input.substr(1);
+    foundcommand = findCommand(input.split(' ')[0]);
+    foundtrigger = findTrigger(input);
     if(foundcommand != undefined) return foundcommand.name;
-    if(foundtrigger != undefined) return '!' + foundtrigger.name;
+    if(foundtrigger != undefined) return foundtrigger.name;
 }
 
 function load() {
@@ -68,7 +69,7 @@ function getTriggers() {
         });
     }
     return triggers;
-};
+}
 
 function addCommandAliases(name, aliases) {
     commands[getCommandIndex(name)].aliases = aliases;
@@ -97,23 +98,31 @@ function addTrigger(name) {
     });
 }
 
-function findCommand(name){
+function findCommand(input){
     for(let c of commands){
-        if(c.name == name) return c;
+        if(input == c.name || input == c.name.split('_').join(' ')){
+            return c;
+        }
         if(c.aliases != undefined && c.aliases.length != 0){
             for(let a of c.aliases){
-                if(a == name) return c;
+                if(input == a || input == a.split('_').join(' ')){
+                    return c;
+                }
             }
         }
     }
 }
 
-function findTrigger(name){
+function findTrigger(input){
     for(let t of triggers){
-        if(t.name == name) return t;
+        if(input == t.name || input == t.name.split('_').join(' ')){
+            return t;
+        }
         if(t.aliases != undefined && t.aliases.length != 0){
             for(let a of t.aliases){
-                if(a == name) return t;
+                if(input == t || input == a.split('_').join(' ')){
+                    return t;
+                }
             }
         }
     }

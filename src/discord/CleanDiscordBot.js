@@ -29,13 +29,19 @@ class cleanDiscordBot extends CleanBot {
     }
 
     messageHandler(msg) {
-        const command = msg.content.trim().toLowerCase().split(' ').join('_');
+
+        //10% chance of getting 1 to 20 bits, so average 1 bit per message
+        if(Math.random()>0.9){
+            this.userdata.addMoney(msg.author, Math.floor(1+Math.random()*20));
+        }
+
+        const command = msg.content.trim().toLowerCase();
         const params = command.split(' ');
-        let funcname = commands.getFunction(params[0].substr(1));
+        let funcname = commands.getFunction(command);
         try {
             if (funcname != undefined) this[funcname](msg, params.slice(1));
         } catch (e) {
-            console.log(funcname + `is not a function`);
+            console.error(e);
         }
     }
 
@@ -91,11 +97,11 @@ class cleanDiscordBot extends CleanBot {
 
     /**
      * @Command("Tells you your Bit balance")
-     * @Aliases(['bal'])
+     * @Aliases(['bal','bits'])
      */
     balance(msg, params) {
-        this.reply(msg, `Your balance is currently **${this.casino.getCashBalance(msg.author)} Bits** in cash and ` +
-            `**${this.casino.getBankBalance(msg.author)} Bits** in the bank.`)
+        this.reply(msg, `Your balance is currently **${this.userdata.getCashBalance(msg.author)} Bits** in cash and ` +
+            `**${this.userdata.getBankBalance(msg.author)} Bits** in the bank.`)
     }
 
     /**
@@ -104,8 +110,14 @@ class cleanDiscordBot extends CleanBot {
      * @Params(['amount'])
      */
     deposit(msg, params) {
-        let amount = parseInt(params[0]);
-        if (this.casino.changeBank(msg.author, amount)) {
+        var amount;
+        if(params[0] == 'all'){
+            amount = this.userdata.getCashBalance(msg.author);
+        } else {
+            amount = parseInt(params[0]);
+        }
+
+        if (this.userdata.deposit(msg.author, amount)) {
             this.reply(msg, `You have deposited **${params[0]} Bits**`);
         } else {
             this.reply(msg, `Insufficient funds`);
@@ -118,11 +130,17 @@ class cleanDiscordBot extends CleanBot {
      * @Params(['amount'])
      */
     withdraw(msg, params) {
-        let amount = parseInt(params[0]);
-        if (this.casino.changeBank(msg.author, amount)) {
+        var amount;
+        if(params[0] == 'all'){
+            amount = this.userdata.getBankBalance(msg.author);
+        } else {
+            amount = parseInt(params[0]);
+        }
+
+        if (this.userdata.withdraw(msg.author, amount)) {
             this.reply(msg, `You have withdrawn **${params[0]} Bits**`);
         } else {
-            tthis.reply(msg, `Insufficient funds`);
+            this.reply(msg, `Insufficient funds`);
         }
     }
 
@@ -132,8 +150,13 @@ class cleanDiscordBot extends CleanBot {
      * @Params(['amount'])
      */
     dicebet(msg, params) {
-        let amount = parseInt(params[0]);
-        let result = this.casino.diceBet(msg.author, amount);
+        var amount;
+        if(params[0] == 'all'){
+            amount = this.userdata.getCashBalance(msg.author);
+        } else {
+            amount = parseInt(params[0]);
+        }
+        let result = this.userdata.diceBet(msg.author, amount);
         if (result[2] != -1) {
             if (result[2] < 0) {
                 this.reply(msg, `You rolled ${result[0]}, I rolled ${result[1]}. You lost **${-result[2]} Bits**!`);
@@ -148,15 +171,120 @@ class cleanDiscordBot extends CleanBot {
     }
 
     /**
-     * @Command("Shows your Bit rank")
+     * @Command("Shows all lottery prizes and their probabilities")
      */
-    rank(msg, params) {
-        let amount = parseInt(params[0]);
-        if (this.casino.changeBank(msg.author.id, amount)) {
-            this.reply(msg, `You have withdrawn **${params[0]} Bits**`);
+    lotteryhelp(msg, params){
+        let s = `**Probabilities **
+        50 Bits   -   22.5%
+        100 Bits   -   11.25%
+        clean-boi role   -   4.5%
+        clean-bigboi role   -   1.41%
+        clean-veteran role   -   0.45%
+        clean-member role   -   0.14%`
+        this.say(msg.channel,s)
+    }
+
+    /**
+     * @Command("Costs 25 Bits and you get a change for winning cool prizes. Type '!lotteryhelp'")
+     * @Aliases(['lot'])
+     */
+    lottery(msg, params){
+        if(this.userdata.takeMoney(msg.author, 25)) {
+            let result = Math.random();
+            if (result < 0.0014) {
+                if (!msg.member.roles.cache.has('662737796330684540')) {
+                    msg.member.roles.add('662737796330684540');
+                    this.reply(msg, `You won **clean-member role**`);
+                } else {
+                    this.userdata.addMoney(msg.author, 50);
+                    this.reply(msg, `You won **50 Bits**`);
+                }
+            }else if (result < 0.0059) {
+                if (!msg.member.roles.cache.has('703697642173235230')) {
+                    msg.member.roles.add('703697642173235230');
+                    this.reply(msg, `You won **clean-veteran role**`);
+                } else {
+                    this.userdata.addMoney(msg.author, 50);
+                    this.reply(msg, `You won **50 Bits**`);
+                }
+            }else if (result < 0.02) {
+                if (!msg.member.roles.cache.has('703700108180586606')) {
+                    msg.member.roles.add('703700108180586606');
+                    this.reply(msg, `You won **clean-bigboi role**`);
+                } else {
+                    this.userdata.addMoney(msg.author, 50);
+                    this.reply(msg, `You won **50 Bits**`);
+                }
+            } else if (result <  0.065) {
+                if (!msg.member.roles.cache.has('703669905110597692')) {
+                    msg.member.roles.add('703669905110597692');
+                    this.reply(msg, `You won **clean-boi role**`);
+                } else {
+                    this.userdata.addMoney(msg.author, 50);
+                    this.reply(msg, `You won **50 Bits**`);
+                }
+
+            }else if (result < 0.1775) {
+                this.userdata.addMoney(msg.author, 100);
+                this.reply(msg, `You won **100 Bits**`);
+            } else if (result < 0.4025) {
+                this.userdata.addMoney(msg.author, 50);
+                this.reply(msg, `You won **50 Bits**`);
+            } else if (result < 1) {
+                this.reply(msg, `You won didn't win anything this time :(`);
+            }
         } else {
             this.reply(msg, `Insufficient funds`);
         }
+    }
+
+    /**
+     * @Command("Spend your bits on a fancy rank. '!rankprices' for prices")
+     * @Aliases(['brole', 'buyrank'])
+     * @Params(['role name'])
+     */
+    buyrole(msg, params) {
+        let rank = params[0];
+        if (msg.member.roles.cache.has(rank)) {
+            this.reply(msg, `You already have the rank **${rank}**`);
+            return;
+        }
+        let self = this;
+        var role, price;
+        if (rank == 'clean-boi') {
+            role = '703669905110597692';
+            price = 250;
+        } else if (rank == 'clean-bigboi') {
+            role = '703700108180586606';
+            price = 800;
+        } else if (rank == 'clean-veteran') {
+            role = '703697642173235230';
+            price = 2500;
+        } else if (rank == 'clean-member') {
+            role = '662737796330684540';
+            price = 8000;
+        }
+        if (self.userdata.takeMoney(msg.author, 500)) {
+            msg.member.roles.add([role]).then(new function () {
+                self.reply(msg, `You have bought the rank **${rank}**`);
+            }).catch(new function () {
+                self.userdata.addMoney(msg.author, price);
+            });
+        } else {
+            this.reply(msg, `Insufficient funds`);
+        }
+    }
+
+    /**
+     * @Command("Lists the prices of all purchasable ranks")
+     * @Aliases(['roles'])
+     */
+    rankprices(msg, params) {
+        let s = `:one: **clean-member**\n  8000 Bits\n`;
+        s += `:two: **clean-veteran**\n  2500 Bits\n`;
+        s += `:three: **clean-bigboi**\n  800 Bits\n`;
+        s += `:four: **clean-boi**\n  250 Bits\n`;
+        this.say(msg.channel, s);
     }
 
     /**
@@ -209,6 +337,7 @@ class cleanDiscordBot extends CleanBot {
         message.setDescription(reply);
         message.setColor('#a760bf')
         channel.send(message);
+        console.log(`DISCORD: ${message.description}`);
     }
 
     reply(msg, reply) {
@@ -216,8 +345,8 @@ class cleanDiscordBot extends CleanBot {
     }
 
     memberJoined(member) {
-        console.log(`${member.user.username}" has joined ${member.guild.name}`);
-        this.casino.addUser(member.user);
+        console.log(`DISCORD: ${member.user.username}" has joined ${member.guild.name}`);
+        this.userdata.addUser(member.user);
     }
 
     startStreamStatusListener() {
