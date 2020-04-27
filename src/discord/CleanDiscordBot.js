@@ -7,7 +7,6 @@ const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 
 class cleanDiscordBot extends CleanBot {
 
-    currentlyLive = false;
     client = new Discord.Client();
 
     constructor(name, token, core) {
