@@ -28,15 +28,25 @@ class cleanDiscordBot extends CleanBot {
     }
 
     messageHandler(msg) {
-
         //10% chance of getting 1 to 20 bits, so average 1 bit per message
-        if(Math.random()>0.9){
-            this.userdata.addMoney(msg.author, Math.floor(1+Math.random()*20));
+        if (Math.random() > 0.9) {
+            this.userdata.addMoney(msg.author, Math.floor(1 + Math.random() * 20));
         }
-
         const command = msg.content.trim().toLowerCase();
         const params = command.split(' ');
         let funcname = commands.getFunction(command);
+
+        let com = commands.findCommand(funcname);
+        let allowed = false;
+        if(com != undefined && com.ranksallowed != null){
+            for(let rank of com.ranksallowed){
+                if(msg.member.roles.cache.has(rank)){
+                    allowed = true;
+                }
+            }
+        } else allowed = true;
+        if(!allowed) return;
+
         try {
             if (funcname != undefined) this[funcname](msg, params.slice(1));
         } catch (e) {
@@ -45,8 +55,9 @@ class cleanDiscordBot extends CleanBot {
     }
 
     /**
-     * @Command('Ping-pong')
+     * @Command(':crossed_swords: Ping-pong')
      * @Aliases(['p'])
+     * @RanksAllowed(['704784390303121605'])
      */
     ping(msg, params) {
         this.say(msg.channel, '...pong');
@@ -59,20 +70,31 @@ class cleanDiscordBot extends CleanBot {
     bbhelp(msg, params) {
         let s = '';
         for (let command of commands.getCommands()) {
-            s += `**!${command.name}** `;
-            if (command.params != undefined) {
-                for (let param of command.params) {
-                    s += `[${param}] `
+            if (command.visible) {
+                let allowed = false;
+                if(command.ranksallowed != null){
+                    for(let rank of command.ranksallowed){
+                        if(msg.member.roles.cache.has(rank)){
+                            allowed = true;
+                        }
+                    }
+                } else allowed = true;
+                if(!allowed) continue;
+                s += `**!${command.name}** `;
+                if (command.params != undefined) {
+                    for (let param of command.params) {
+                        s += `[${param}] `
+                    }
                 }
-            }
-            if (command.aliases.length != 0) {
-                let aliases = ''
-                for (let alias of command.aliases) {
-                    aliases += `, !${alias}`
+                if (command.aliases.length != 0) {
+                    let aliases = '';
+                    for (let alias of command.aliases) {
+                        aliases += `, !${alias}`
+                    }
+                    s += ` *(${aliases.substr(2)})*`;
                 }
-                s += ` *(${aliases.substr(2)})*`;
+                s += `\n*${command.description}*\n`;
             }
-            s += `\n*${command.description}*\n`;
         }
         this.say(msg.channel, s);
     }
@@ -110,7 +132,7 @@ class cleanDiscordBot extends CleanBot {
      */
     deposit(msg, params) {
         var amount;
-        if(params[0] == 'all'){
+        if (params[0] == 'all') {
             amount = this.userdata.getCashBalance(msg.author);
         } else {
             amount = parseInt(params[0]);
@@ -130,7 +152,7 @@ class cleanDiscordBot extends CleanBot {
      */
     withdraw(msg, params) {
         var amount;
-        if(params[0] == 'all'){
+        if (params[0] == 'all') {
             amount = this.userdata.getBankBalance(msg.author);
         } else {
             amount = parseInt(params[0]);
@@ -144,13 +166,73 @@ class cleanDiscordBot extends CleanBot {
     }
 
     /**
+     * @Command(':crossed_swords: Give cash to user')
+     * @Params(['user', 'amount'])
+     * @RanksAllowed(['704784390303121605'])
+     */
+    givebit(msg, params) {
+        let amount = parseInt(params[1]);
+        let user = msg.mentions.users.first();
+        if(user == undefined) this.say(msg.channel, `User not found`);
+        if(this.userdata.addMoney(user, amount)){
+            this.say(msg.channel, `Successfully gave ${user.username} ${amount} Bits`);
+        } else {
+            this.say(msg.channel, `Could not give Bits to ${user.username}`);
+        }
+    }
+
+    /**
+    * @Command(':crossed_swords:  Take cash from user')
+    * @Params(['user', 'amount'])
+    * @RanksAllowed(['704784390303121605'])
+    */
+    takebits(msg, params) {
+        let amount = parseInt(params[1]);
+        let user = msg.mentions.users.first();
+        if(user == undefined) this.say(msg.channel, `User not found`);
+        if(this.userdata.takeMoney(user, amount)){
+            this.say(msg.channel, `Successfully took ${user.username}'s ${amount} Bits`);
+        } else {
+            this.say(msg.channel, `Could not take ${amount} Bits from ${user.username}`);
+        }
+    }
+
+    /**
+     * @Command(':crossed_swords:  Resets user\'s balance to the defailt 100 Bits cash and 0 Bits in bank')
+     * @Params(['user'])
+     * @RanksAllowed(['704784390303121605'])
+     */
+    resetbalance(msg, params) {
+        let user = msg.mentions.users.first();
+        if(user == undefined) this.say(msg.channel, `User not found`);
+        if(this.userdata.resetBalance(user)){
+            this.say(msg.channel, `Successfully reset ${user.username}'s balance`);
+        } else {
+            this.say(msg.channel, `Could not reset ${user.username}'s balance`);
+        }
+    }
+
+    /**
+     * @Command(':crossed_swords:  Shows a user\'s balance')
+     * @Params(['user'])
+     * @RanksAllowed(['704784390303121605'])
+     */
+    getbalance(msg, params) {
+        let user = msg.mentions.users.first();
+        if(user == undefined) this.say(msg.channel, `User not found`);
+        else this.say(msg.channel, `${user.username}'s balance is currently **${this.userdata.getCashBalance(user)} Bits** in cash and ` +
+            `**${this.userdata.getBankBalance(user)} Bits** in the bank.`)
+    }
+
+
+    /**
      * @Command("We both roll a d6, whoever rolls higher takes it all. Usage: '!dicebet 50'")
      * @Aliases(['d6'])
      * @Params(['amount'])
      */
     dicebet(msg, params) {
         var amount;
-        if(params[0] == 'all'){
+        if (params[0] == 'all') {
             amount = this.userdata.getCashBalance(msg.author);
         } else {
             amount = parseInt(params[0]);
@@ -172,23 +254,23 @@ class cleanDiscordBot extends CleanBot {
     /**
      * @Command("Shows all lottery prizes and their probabilities")
      */
-    lotteryhelp(msg, params){
+    lotteryhelp(msg, params) {
         let s = `**Probabilities **
         50 Bits   -   22.5%
         100 Bits   -   11.25%
         clean-boi role   -   4.5%
         clean-bigboi role   -   1.41%
         clean-veteran role   -   0.45%
-        clean-member role   -   0.14%`
-        this.say(msg.channel,s)
+        clean-member role   -   0.14%`;
+        this.say(msg.channel, s)
     }
 
     /**
      * @Command("Costs 25 Bits and you get a change for winning cool prizes. Type '!lotteryhelp'")
      * @Aliases(['lot'])
      */
-    lottery(msg, params){
-        if(this.userdata.takeMoney(msg.author, 25)) {
+    lottery(msg, params) {
+        if (this.userdata.takeMoney(msg.author, 25)) {
             let result = Math.random();
             if (result < 0.0014) {
                 if (!msg.member.roles.cache.has('662737796330684540')) {
@@ -198,7 +280,7 @@ class cleanDiscordBot extends CleanBot {
                     this.userdata.addMoney(msg.author, 50);
                     this.reply(msg, `You won **50 Bits**`);
                 }
-            }else if (result < 0.0059) {
+            } else if (result < 0.0059) {
                 if (!msg.member.roles.cache.has('703697642173235230')) {
                     msg.member.roles.add('703697642173235230');
                     this.reply(msg, `You won **clean-veteran role**`);
@@ -206,7 +288,7 @@ class cleanDiscordBot extends CleanBot {
                     this.userdata.addMoney(msg.author, 50);
                     this.reply(msg, `You won **50 Bits**`);
                 }
-            }else if (result < 0.02) {
+            } else if (result < 0.02) {
                 if (!msg.member.roles.cache.has('703700108180586606')) {
                     msg.member.roles.add('703700108180586606');
                     this.reply(msg, `You won **clean-bigboi role**`);
@@ -214,7 +296,7 @@ class cleanDiscordBot extends CleanBot {
                     this.userdata.addMoney(msg.author, 50);
                     this.reply(msg, `You won **50 Bits**`);
                 }
-            } else if (result <  0.065) {
+            } else if (result < 0.065) {
                 if (!msg.member.roles.cache.has('703669905110597692')) {
                     msg.member.roles.add('703669905110597692');
                     this.reply(msg, `You won **clean-boi role**`);
@@ -223,7 +305,7 @@ class cleanDiscordBot extends CleanBot {
                     this.reply(msg, `You won **50 Bits**`);
                 }
 
-            }else if (result < 0.1775) {
+            } else if (result < 0.1775) {
                 this.userdata.addMoney(msg.author, 100);
                 this.reply(msg, `You won **100 Bits**`);
             } else if (result < 0.4025) {
@@ -303,6 +385,14 @@ class cleanDiscordBot extends CleanBot {
     }
 
     /**
+     * @Command('Shows all the triggers')
+     * @Hidden
+     */
+    version(msg, params) {
+        this.say(msg.channel, `BitBot v${this.buildVersion}`);
+    }
+
+    /**
      * @Trigger('yeet')
      */
     yeet(msg) {
@@ -334,7 +424,7 @@ class cleanDiscordBot extends CleanBot {
     say(channel, reply) {
         let message = new Discord.MessageEmbed();
         message.setDescription(reply);
-        message.setColor('#a760bf')
+        message.setColor('#a760bf');
         channel.send(message);
         console.log(`DISCORD: ${message.description}`);
     }

@@ -1,10 +1,13 @@
 
-require('dotenv').config()
+require('dotenv').config({path: __dirname +'/../.env'});
+var pjson = require('../package.json');
 
+console.log(`Starting BitBot v${pjson.version}`);
 
 class CleanBot{
 
     userdata = require('./database/Users.js');
+    buildVersion = pjson.version;
 
     constructor(name) {
         this.name = name;

@@ -1,5 +1,5 @@
 
-const fs = require('fs')
+const fs = require('fs');
 let path = require('path');
 let read;
 let file;
@@ -28,10 +28,18 @@ function takeMoney(user, amount) {
 }
 
 function changeMoney(user, amount) {
-    checkUserExists(user)
+    checkUserExists(user);
     if(getCashBalance(user) + amount < 0) return false;
     file[user.id]['balance'] += amount;
-    sync()
+    sync();
+    return true;
+}
+
+function resetBalance(user) {
+    checkUserExists(user);
+    file[user.id]['balance'] = 100;
+    file[user.id]['bank'] = 0;
+    sync();
     return true;
 }
 
@@ -44,7 +52,7 @@ function withdraw(user, amount){
 }
 
 function changeBank(user, amount) {
-    checkUserExists(user)
+    checkUserExists(user);
     if ((amount > 0 && amount <= getCashBalance(user)) || (amount < 0 && amount <= getBankBalance(user))) {
         file[user.id]['balance'] -= amount;
         file[user.id]['bank'] += amount;
@@ -113,5 +121,6 @@ module.exports = {
     getBankBalance: getBankBalance,
     getCombinedBalance: getCombinedBalance,
     checkUserExists: checkUserExists,
+    resetBalance: resetBalance,
     diceBet: diceBet
 };

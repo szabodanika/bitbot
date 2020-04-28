@@ -1,6 +1,6 @@
 {
   "name": "bitbot",
-  "version": "0.0.1",
+  "version": "20.4.28",
   "description": "CleanBits universal chatbot",
   "main": "src/Core.js",
   "scripts": {

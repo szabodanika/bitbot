@@ -1,14 +1,16 @@
 var path = require('path');
 
-const Registry = require('../lib/registry')
-const Reader = require('../lib/reader')
-const registry = new Registry()
-const reader = new Reader(registry)
+const Registry = require('../lib/registry');
+const Reader = require('../lib/reader');
+const registry = new Registry();
+const reader = new Reader(registry);
 
 registry.registerAnnotation(path.join(__dirname, '/annotations/CommandAnnotation.js'));
 registry.registerAnnotation(path.join(__dirname, '/annotations/TriggerAnnotation.js'));
 registry.registerAnnotation(path.join(__dirname, '/annotations/AliasAnnotation.js'));
 registry.registerAnnotation(path.join(__dirname, '/annotations/ParamsAnnotation.js'));
+registry.registerAnnotation(path.join(__dirname, '/annotations/HiddenAnnotation.js'));
+registry.registerAnnotation(path.join(__dirname, '/annotations/RanksAllowedAnnotation.js'));
 
 reader.parse(path.join(__dirname, '/discord/CleanDiscordBot.js'));
 
@@ -43,15 +45,23 @@ function getCommands() {
                 if(findCommand(annotation.target) != undefined){
                     addCommandAliases(annotation.target, annotation.value);
                 }
+            } else if(annotation.constructor.name == 'RanksAllowed'){
+                if(findCommand(annotation.target) != undefined){
+                    addRanksAllowed(annotation.target, annotation.value);
+                }
             } else if(annotation.constructor.name == 'Params'){
                 if(findCommand(annotation.target) != undefined){
                     addParams(annotation.target, annotation.value);
+                }
+            } else if(annotation.constructor.name == 'Hidden'){
+                if(findCommand(annotation.target) != undefined){
+                    setCommandInvisible(annotation.target);
                 }
             }
         });
     }
     return commands;
-};
+}
 
 function getTriggers() {
     if(triggers.length == 0){
@@ -75,6 +85,11 @@ function addCommandAliases(name, aliases) {
     commands[getCommandIndex(name)].aliases = aliases;
 }
 
+function addRanksAllowed(name, ranks) {
+    commands[getCommandIndex(name)].ranksallowed = ranks;
+}
+
+
 function addTriggerAliases(name, aliases) {
     triggers[getTriggerIndex(name)].aliases = aliases;
 }
@@ -83,11 +98,17 @@ function addParams(name, params) {
     commands[getCommandIndex(name)].params = params;
 }
 
+function setCommandInvisible(name){
+    commands[getCommandIndex(name)].visible = false;
+}
+
 function addCommand(name, description) {
     commands.push({
         name: name,
         aliases: [],
-        description: description
+        description: description,
+        visible: true,
+        ranksallowed: null
     });
 }
 
@@ -95,6 +116,7 @@ function addTrigger(name) {
     triggers.push({
         name: name,
         aliases: [],
+        visible: true
     });
 }
 
@@ -141,6 +163,7 @@ function getTriggerIndex(name){
 }
 
 module.exports = {
+    findCommand: findCommand,
     getCommands: getCommands,
     getTriggers: getTriggers,
     getFunction: getFunction
