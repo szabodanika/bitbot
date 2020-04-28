@@ -57,7 +57,7 @@ class cleanDiscordBot extends CleanBot {
     /**
      * @Command(':crossed_swords: Ping-pong')
      * @Aliases(['p'])
-     * @RanksAllowed(['704784390303121605'])
+     * @RanksAllowed(['662737409733034042'])
      */
     ping(msg, params) {
         this.say(msg.channel, '...pong');
@@ -168,7 +168,7 @@ class cleanDiscordBot extends CleanBot {
     /**
      * @Command(':crossed_swords: Give cash to user')
      * @Params(['user', 'amount'])
-     * @RanksAllowed(['704784390303121605'])
+     * @RanksAllowed(['662737409733034042'])
      */
     givebit(msg, params) {
         let amount = parseInt(params[1]);
@@ -184,7 +184,7 @@ class cleanDiscordBot extends CleanBot {
     /**
     * @Command(':crossed_swords:  Take cash from user')
     * @Params(['user', 'amount'])
-    * @RanksAllowed(['704784390303121605'])
+    * @RanksAllowed(['662737409733034042'])
     */
     takebits(msg, params) {
         let amount = parseInt(params[1]);
@@ -200,7 +200,7 @@ class cleanDiscordBot extends CleanBot {
     /**
      * @Command(':crossed_swords:  Resets user\'s balance to the defailt 100 Bits cash and 0 Bits in bank')
      * @Params(['user'])
-     * @RanksAllowed(['704784390303121605'])
+     * @RanksAllowed(['662737409733034042'])
      */
     resetbalance(msg, params) {
         let user = msg.mentions.users.first();
@@ -215,7 +215,7 @@ class cleanDiscordBot extends CleanBot {
     /**
      * @Command(':crossed_swords:  Shows a user\'s balance')
      * @Params(['user'])
-     * @RanksAllowed(['704784390303121605'])
+     * @RanksAllowed(['662737409733034042'])
      */
     getbalance(msg, params) {
         let user = msg.mentions.users.first();
