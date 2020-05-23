@@ -471,7 +471,7 @@ class cleanDiscordBot extends CleanBot {
         xhr.send();
         xhr.onload = function () {
             let data = JSON.parse(xhr.responseText);
-            if (data['data'].length != 0) {
+            if (data != null && data['data'].length != 0) {
                 if (!self.currentlyLive) {
                     self.say(self.client.channels.cache.get(process.env.DISCORD_ANNOUNCEMENT_CHANNEL_ID),
                         `${process.env.MY_NAME} is currently live!` +
