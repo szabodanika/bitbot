@@ -454,7 +454,7 @@ class cleanDiscordBot extends CleanBot {
         let self = this;
         xhr.onload = function () {
             let data = JSON.parse(xhr.responseText);
-            if (data['data'].length != 0) {
+            if (data != undefined && data['data'].length != 0) {
                 self.say(channel, `${process.env.MY_NAME} is currently live!` +
                     `\n Join here: https://www.twitch.tv/${process.env.TWITCH_CHANNEL_NAME}`);
             } else {
